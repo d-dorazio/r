@@ -90,13 +90,13 @@ D sdbox(V p, V b, D r) {
 
 D sdf(V p, V& c) {
     D dd = dif(sds(p, .45), sddl(p, .2), .1);
-    dd = uni(dd, sdbox(p-V(.33, .3, .3), V(.05,.5,.05), .1), .15);
+    dd = uni(dd, sdbox(p-V(.33, -.3, .3), V(.05,.5,.05), .1), .15);
 
-    D ad = sdbox(p-V(.9, .7, .25), V(.05, .1, .05), .1);
+    D ad = sdbox(p-V(.9, -.7, .25), V(.05, .1, .05), .1);
     ad = fmin(ad, sdvl(p-V(.9, -.3, .25), .15, .6));
     D td = fmin(dd, ad);
 
-    D pd = (p-V(0,-.8,0)).dot(!V(0,.9,.1));
+    D pd = (p-V(0, .7, 0)).dot(!V(0, -1, 0));
 
     c = td < pd ? V(.13, .54, .13) : V(1, .38, .28);
     return fmin(td, pd);
@@ -104,8 +104,7 @@ D sdf(V p, V& c) {
 
 V march(V e, V rd, I l) {
     V c;
-    V l1 = !V(-.5,0,1.3);
-    V l2 = !V(0,1,-1);
+    V l1 = !V(0,-1,0.6);
 
     for (I i=0; i<100; ++i) {
         D d = sdf(e, c);
@@ -117,15 +116,15 @@ V march(V e, V rd, I l) {
                      sdf(V(e.x    , e.y    , e.z+eps), cc) - sdf(V(e.x    , e.y    , e.z-eps), cc));
 
 
-            cc = V(fmax(n.dot(l1), 0) + fmax(n.dot(l2), 0));
-            V ic = l ? march(e+n*eps, n, l-1) : V();
+            return c*fmax(n.dot(l1), 0);
 
-            return ic.len() ? V() : V(c.x*cc.x, c.y*cc.y, c.z*cc.z);
+            /* V ic = l ? march(e+n*eps, l1*(-1), 0) : V(); */
+            /* return ic.len() ? V() : c*fmax(n.dot(l1), 0); */
         }
         e = e + rd*d;
     }
 
-    return V();
+    return V(0.3,0.2,0.6);
 }
 
 I main() {
@@ -137,7 +136,7 @@ I main() {
 
     V zd = !(look_at - eye);
     V xd = !(zd * V(0,1,0));
-    V yd = !(xd * zd);
+    V yd = !(zd * xd);
 
     auto d = new char[w*h*3];
 
