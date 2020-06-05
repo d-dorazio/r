@@ -102,9 +102,9 @@ D sdf(V p, V& c) {
     return fmin(td, pd);
 }
 
-V march(V e, V rd, I l) {
+V march(V e, V rd, I l, I& h) {
     V c;
-    V l1 = !V(0,-1,0.6);
+    V l1 = !V(0,-1,.9);
 
     for (I i=0; i<100; ++i) {
         D d = sdf(e, c);
@@ -115,16 +115,17 @@ V march(V e, V rd, I l) {
                      sdf(V(e.x    , e.y+eps, e.z    ), cc) - sdf(V(e.x    , e.y-eps, e.z    ), cc),
                      sdf(V(e.x    , e.y    , e.z+eps), cc) - sdf(V(e.x    , e.y    , e.z-eps), cc));
 
-
-            return c*fmax(n.dot(l1), 0);
-
-            /* V ic = l ? march(e+n*eps, l1*(-1), 0) : V(); */
-            /* return ic.len() ? V() : c*fmax(n.dot(l1), 0); */
+            h = 1;
+            I hh = 0;
+            if (l)
+                march(e+n*eps, n, 0, hh);
+            return hh ? V() : c*n.dot(l1);
         }
         e = e + rd*d;
     }
 
-    return V(0.3,0.2,0.6);
+    h = 0;
+    return V(.3,.2,.6);
 }
 
 I main() {
@@ -149,7 +150,8 @@ I main() {
                 D yt = D(h-y+rand1())/h * 2 - 1;
 
                 V rd = !((xd*xt) + (yd*yt) + zd);
-                c = c + march(eye, rd, 1);
+                I h;
+                c = c + march(eye, rd, 1, h);
             }
             c = c/V(samples);
 
