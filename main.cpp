@@ -4,12 +4,12 @@
 using I = int;
 using D = double;
 
-D eps = 1e-2;
+D eps = .01;
 
 struct V {
-	D x=0, y=0, z=0;
+	D x,y,z;
 
-	V() {}
+	V() : V(0) {}
 	explicit V(D v) {
 		x = y = z = v;
 	}
@@ -104,7 +104,7 @@ D sdf(V p, V& c) {
 
 V march(V e, V rd, I l, I& h) {
 	V c;
-	V l1 = !V(0,-1,.9);
+	V l1 = !V(0,-1,.3);
 
 	for (I i=0; i<100; ++i) {
 		D d = sdf(e, c);
