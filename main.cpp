@@ -96,10 +96,18 @@ D sdf(V p, V& c) {
 	ad = fmin(ad, sdvl(p-V(.9, -.3, .25), .15, .6));
 	D td = fmin(dd, ad);
 
-	D pd = (p-V(0, .7, 0)).dot(!V(0, -1, 0));
+	p = p - V(0, .7, 0);
+	D pd = p.dot(!V(0, -1, 0));
 
-	c = td < pd ? V(.13, .54, .13) : V(1, .38, .28);
-	return fmin(td, pd);
+	if (td < pd) {
+		c = V(.13, .54, .13);
+		return td;
+	}
+
+	auto f = [](D v) { return fabs(fmod(v,1)) > .5; };
+	c = (f(p.x) ^ f(p.z)) ? V(.82,.15,.15) : V(.96,.63,.1);
+
+	return pd;
 }
 
 V march(V e, V rd, I l, I& h) {
@@ -125,7 +133,7 @@ V march(V e, V rd, I l, I& h) {
 	}
 
 	h = 0;
-	return V(.3,.2,.6);
+	return V(.92,.95,.95);
 }
 
 I main() {
