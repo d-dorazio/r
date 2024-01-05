@@ -12,7 +12,7 @@ struct V {
 	D x,y,z;
 
 	V() : V(0) {}
-	explicit V(D v) {
+	V(D v) {
 		x = y = z = v;
 	}
 
@@ -116,7 +116,7 @@ V march(V e, V rd, I l, I& h) {
 	V c;
 	V l1 = !V(0,-1,.3);
 
-	for (I i=0; i<100; ++i) {
+	for (I i=0; i<99; ++i) {
 		D d = sdf(e, c);
 
 		if (d < eps) {
@@ -140,7 +140,7 @@ V march(V e, V rd, I l, I& h) {
 
 I main() {
 	I w=512, h=w;
-	I samples=10;
+	I samples=9;
 	V look_at(.4,0,0);
 
 	V eye(-.5,0,1.3);
