@@ -1,37 +1,81 @@
 #!/usr/bin/env python3
 
-import re
-import subprocess
-import textwrap
+
+OPERATORS = r"=+-*/<>\{\};():?,!&[]^"
+
+
+def tokens(src):
+    i = 0
+
+    def eat(ty, fun):
+        nonlocal i
+        tok = ""
+        while i < len(src) and fun(src[i]):
+            tok += src[i]
+            i += 1
+        return tok, ty
+
+    while i < len(src):
+        c = src[i]
+
+        if c.isspace():
+            eat("space", lambda c: c.isspace())
+            continue
+
+        elif c == "#":
+            yield eat("macro", lambda c: c != "\n")
+            i += 1
+
+        elif c == '"':
+            i += 1
+            tok, ty = eat("str", lambda c: c != '"')
+            yield f'"{tok}"', ty
+            i += 1
+
+        elif c.isdigit() or (c == "." and src[i + 1].isdigit()):
+            yield eat("num", lambda c: c.isdigit() or c == ".")
+
+        elif c == ".":
+            yield c, c
+            i += 1
+
+        elif c.isalpha() or c == "_":
+            yield eat("id", lambda c: src[i].isalnum() or src[i] == "_")
+
+        elif c in OPERATORS:
+            yield eat("op", lambda c: c in OPERATORS)
+
+        else:
+            assert False, c
 
 
 def minimize(src):
     out = ""
-    body = ""
-
-    for l in src.splitlines():
-        if l.startswith("#define"):
-            out += l.strip() + "\n"
+    line = ""
+    last_ty = None
+    for tok, ty in tokens(src):
+        if ty == "macro":
+            if line:
+                out += line + "\n"
+            out += tok + "\n"
+            line, last_ty = "", ""
             continue
-        if l.startswith("#include"):
-            out += l.strip().replace(" ", "") + "\n"
-            continue
 
-        l = l.replace("\t", "")
-        l = l.replace("explicit", "")
-        l = re.sub(r" +", " ", l)
-
-        for s in r"=+-*/<>\{\};():?,":
-            l = l.replace(" {}".format(s), s).replace("{} ".format(s), s)
-
-        if '"' in l:
-            out += "\n".join(textwrap.wrap(body, 80))
-            out += "\n" + l
-            body = ""
+        needs_space = (last_ty == "id" and ty == "num") or (
+            last_ty == ty and ty != "op"
+        )
+        if len(line) + needs_space + len(tok) > 80:
+            out += line + "\n"
+            line, last_ty = tok, ty
         else:
-            body += l
+            if needs_space:
+                line += " "
+            line += tok
+            last_ty = ty
 
-    return out + "\n".join(textwrap.wrap(body, 80))
+    out += line
+
+    return out
 
 
 def main(src, dst):
