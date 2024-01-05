@@ -16,7 +16,7 @@ struct V {
         x = y = z = v;
     }
 
-    V(D a, D b, D c) {
+    V(D a, D b, D c = 0) {
         x = a;
         y = b;
         z = c;
@@ -64,34 +64,44 @@ D R1() {
     R D(rand()) / RAND_MAX;
 }
 
-D uni(D d, D b, D k) {
-    D h = C(.5 + .5*(b-d)/k, 0, 1);
-    R X(b, d, h) - k*h*(1-h);
+
+// float sdBox( in vec2 p, in vec2 b )
+// {
+//     vec2 d = abs(p)-b;
+//     return length(max(d,0.0)) + min(max(d.x,d.y),0.0);
+// }
+
+
+// float opExtrusion( in vec3 p, in sdf2d primitive, in float h )
+// {
+//     float d = primitive(p.xy)
+//     vec2 d = vec2( d, abs(p.z) - h );
+//     return length(max(d,0.0)) + min(max(d.x,d.y),0.0);
+// }
+
+D sdEx(V p, V b) {
+    D x = p.x-b.x,
+      y = Ab(p.y)-b.y;
+    R V(Ma(x, 0), Ma(y, 0)).L() + Mi(0, Ma(x, y));
 }
 
-D dif(D b, D d, D k) {
-    D h = C(.5 - .5*(b+d)/k, 0, 1);
-    R X(b, -d, h) + k*h*(1-h);
-}
-
-D sdbox(V p, V b) {
-    R V(Ma(Ab(p.x)-b.x, 0),
-        Ma(Ab(p.y)-b.y, 0),
-        Ma(Ab(p.z)-b.z, 0)).L();
+D sdBox(V p, V b) {
+    R sdEx({Ab(p.x), p.y}, b);
 }
 
 D S(V p, V& c) {
-    D dd = uni(dif(p.L() - .45, V(p.x,p.y,0).L() - .2, .1),    // sphere - segment running through Z
-               sdbox(p-V(.33, -.3, .3), V(.05,.5,.05)) - .1,
-               .15), // D
+    D d2 = Mi(Mi(
+            sdBox({p.x+.05, p.y+.1}, {.13,.65}),      //  |
+            Ab(V(p.x-.4, p.y-.1).L() - .3)-0.05    // o
+        ),
+        Mi(
+            sdBox({p.x+.6, p.y+.5}, {.1,.1}),       // *
+            sdBox({p.x+.6, p.y-.2}, {.1,.34})       // |
+        )),
 
-      ad = Mi(sdbox(p-V(.9, -.7, .25), V(.05, .1, .05)) - .1,            // rounded box
-              V(p.x-.9, p.y+.3 - C(p.y+.3, 0, .6), p.z-.25).L() - .15   // rounded segment
-              ), // ;
+       td = sdEx({d2, Ab(p.z)}, {0., .15}) - .05;
 
-      td = Mi(dd, ad); // text distance
-
-    p.y -= .7;
+    p.y -= .85;
     D pd = p.dot({0, -1, 0}); // floor distance
 
     if (td < pd) {
@@ -106,7 +116,7 @@ D S(V p, V& c) {
 }
 
 V M(V e, V r, I b, I& h) {
-    V c, cc, n, l1 = !V(0,-1,.3);
+    V c, cc, n, l1 = !V(0,-1.3,-1); // l1 is the light dir reversed
 
     for (I i=0, hh=0; i<99; ++i,h=1) {
         D d = S(e, c), E=0.01;
@@ -131,10 +141,10 @@ V M(V e, V r, I b, I& h) {
 I main() {
     I w=512,
       h=w,
-      S=5;    // samples
+      S=9;    // samples
 
-    V T(.4,0,0),       // look at
-      E(-.5,0,1.3),    // eye
+    V T,       // look at
+      E(.5,0,-1.5),    // eye
       Z = !(T - E),
       X = !(Z * V(0,1,0)),
       Y = !(Z * X);
