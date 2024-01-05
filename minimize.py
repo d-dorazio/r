@@ -22,6 +22,10 @@ def tokens(src):
             eat("space", lambda c: c.isspace())
             continue
 
+        elif c == "/" and src[i+1] == "/":
+            eat("comment", lambda c: c != "\n")
+            i += 1
+
         elif c == "#":
             yield eat("macro", lambda c: c != "\n")
             i += 1
