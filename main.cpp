@@ -1,5 +1,7 @@
 #include <stdio.h>
 #include <math.h>
+#define O operator
+#define R return
 
 using I = int;
 using D = double;
@@ -21,71 +23,71 @@ struct V {
 	}
 
 	D len() {
-		return sqrt(x*x + y*y + z*z);
+		R sqrt(x*x + y*y + z*z);
 	}
 
-	V operator+(V o) {
-		return V(x+o.x, y+o.y, z+o.z);
+	V O+(V o) {
+		R V(x+o.x, y+o.y, z+o.z);
 	}
 
-	V operator-(V o) {
-		return V(x-o.x, y-o.y, z-o.z);
+	V O-(V o) {
+		R V(x-o.x, y-o.y, z-o.z);
 	}
 
-	V operator/(V o) {
-		return V(x/o.x, y/o.y, z/o.z);
+	V O/(V o) {
+		R V(x/o.x, y/o.y, z/o.z);
 	}
 
-	V operator*(D s) {
-		return V(x*s, y*s, z*s);
+	V O*(D s) {
+		R V(x*s, y*s, z*s);
 	}
 
-	V operator*(V o) {
-		return V(y*o.z - z*o.y, z*o.x - x*o.z, x*o.y - y*o.x);
+	V O*(V o) {
+		R V(y*o.z - z*o.y, z*o.x - x*o.z, x*o.y - y*o.x);
 	}
 
 	D dot(V o) {
-		return x*o.x + y*o.y + z*o.z;
+		R x*o.x + y*o.y + z*o.z;
 	}
 
-	V operator!() {
-		return *this / V(len());
+	V O!() {
+		R *this / V(len());
 	}
 
 };
 
-D clamp(D v, D l, D h) { return fmin(h, fmax(l, v)); }
-D mix(D l, D h, D t) { return (1-t)*l + t*h; }
+D clamp(D v, D l, D h) { R fmin(h, fmax(l, v)); }
+D mix(D l, D h, D t) { R (1-t)*l + t*h; }
 
 D rand1() {
-	return D(rand()) / RAND_MAX;
+	R D(rand()) / RAND_MAX;
 }
 
 D uni(D d1, D d2, D k) {
 	D h = clamp(.5 + .5*(d2-d1)/k, 0, 1);
-	return mix(d2, d1, h) - k*h*(1-h);
+	R mix(d2, d1, h) - k*h*(1-h);
 }
 
 D dif(D d2, D d1, D k) {
 	D h = clamp(.5 - .5*(d2+d1)/k, 0, 1);
-	return mix(d2, -d1, h) + k*h*(1-h);
+	R mix(d2, -d1, h) + k*h*(1-h);
 }
 
-D sds(V p, D r) { return p.len() - r; }
+D sds(V p, D r) { R p.len() - r; }
 D sddl(V p, D r) {
 	p.z = 0;
-	return p.len() - r;
+	R p.len() - r;
 }
 D sdvl(V p, D r, D h) {
 	p.y -= clamp(p.y, 0, h);
-	return p.len() - r;
+	R p.len() - r;
 }
 
 D sdbox(V p, V b, D r) {
 	V q(fmax(fabs(p.x)-b.x, 0),
 		fmax(fabs(p.y)-b.y, 0),
 		fmax(fabs(p.z)-b.z, 0));
-	return q.len() - r;
+	R q.len() - r;
 }
 
 D sdf(V p, V& c) {
@@ -101,13 +103,13 @@ D sdf(V p, V& c) {
 
 	if (td < pd) {
 		c = V(.13, .54, .13);
-		return td;
+		R td;
 	}
 
-	auto f = [](D v) { return fabs(fmod(v,1)) > .5; };
+	auto f = [](D v) { R fabs(fmod(v,1)) > .5; };
 	c = (f(p.x) ^ f(p.z)) ? V(.82,.15,.15) : V(.96,.63,.1);
 
-	return pd;
+	R pd;
 }
 
 V march(V e, V rd, I l, I& h) {
@@ -127,13 +129,13 @@ V march(V e, V rd, I l, I& h) {
 			I hh = 0;
 			if (l)
 				march(e+n*eps, n, 0, hh);
-			return hh ? V() : c*n.dot(l1);
+			R hh ? V() : c*n.dot(l1);
 		}
 		e = e + rd*d;
 	}
 
 	h = 0;
-	return V(.92,.95,.95);
+	R V(.92,.95,.95);
 }
 
 I main() {
@@ -174,5 +176,5 @@ I main() {
 	fwrite(d, 1, w*h*3, stdout);
 
 	delete[] d;
-	return 0;
+	R 0;
 }
